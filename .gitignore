@@ -5,3 +5,7 @@
 # Amiga ROMs
 /rom/
 !/rom/README.md
+
+# Amiga Kickstart disks
+/kick/
+!/kick/README.md

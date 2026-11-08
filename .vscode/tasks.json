@@ -2,6 +2,17 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
+			"label": "Kickdev build kickstart ADF",
+			"type": "shell",
+			"command": "cat disk/kick512.bin build/kickdev.rom > build/kickstart.adf",
+			"dependsOn": [
+				"Kickdev build boot ROM",
+			],
+			"problemMatcher": [
+				"$vasm"
+			]
+		},
+		{
 			"label": "Kickdev build boot ROM",
 			"type": "shell",
 			"command": "${env:USERPROFILE}/.vscode/extensions/prb28.amiga-assembly-1.9.0/resources/bin/win32/vasmm68k_mot.exe",

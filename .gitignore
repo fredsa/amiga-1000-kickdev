@@ -1,0 +1,7 @@
+# Build artifacts
+/build/
+/uae/
+
+# Amiga ROMs
+/rom/
+!/rom/README.md

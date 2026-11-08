@@ -1,12 +1,19 @@
 ; Kickstart 1.0 - 1.3: 256KB $00fc0000 – $00ffffff
 ; Kickstart 2.0 - 3.1: 512KB $00f80000 – $00ffffff
-BOOT_ROM_SIZE EQU 8*1024                    ; 256KB Kickstart ROM
+;BOOT_ROM_SIZE EQU 256*1024                    ; 256KB Kickstart ROM
+
+BOOT_ROM_SIZE EQU 8*1024                    ; 8kB boot ROM
   org       $fc0000
 
 CUSTOM        EQU $DFF000
 
+START
  jmp begin
-;   nop
+;    nop
+;    nop
+;    nop
+;    nop
+
 ;   dc $4E71
 ;   dc $4E71
 ;   dc $4E71
@@ -25,4 +32,4 @@ loop:
   move.w    d0,$180(a6)                       ; COLOR00
   jmp       loop
 
-  ds.b      BOOT_ROM_SIZE - (* - START), 0
+  ds.b      BOOT_ROM_SIZE-(*-START), 0

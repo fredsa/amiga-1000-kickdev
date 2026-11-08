@@ -7,7 +7,7 @@
         {
             "type": "amiga-assembly",
             "request": "launch",
-            "name": "Kickdev WinUAE Launch",
+            "name": "Kickdev ROM Launch",
             "noDebug": true,
             "program": "${workspaceFolder}/uae/dh0/myprogram",
             "remoteProgram": "SYS:myprogram",
@@ -15,15 +15,15 @@
             "emulatorArgs": [
                 "-s", "chipset=ocs",
                 "-s", "chipset_compatible=A1000",
+                "-s", "floppy_speed=800",
                 "-v", "0", // Chipset: 0 (A1000 without EHB), 1 (A1000), 2 (OCS), 3 (ECS Agnus), 4 (ECS Denise), 5 (Full ECS), 6 (AGA)
                 "-c", "1", // 1* 512kB chipmen
                 "-s", "gfx_width=1600",
                 "-s", "gfx_height=1200",
                 "-w", "-1", // CPU: 0=cycle exact, -1=max speed
-                "-s", "kickstart_rom_file=${workspaceFolder}/rom/Amiga 1000 ROM Bootstrap (1985)(Commodore)(A1000)[u].rom",
-                "-0", "${workspaceFolder}/kickstart10.adf",
+                "-s", "kickstart_rom_file=${workspaceFolder}/build/kickdev.rom"
             ],
-            "preLaunchTask": "amigaassembly: build"
+            "preLaunchTask": "Kickdev build boot ROM"
         },
         {
             "type": "amiga-assembly",

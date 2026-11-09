@@ -23,7 +23,7 @@
                 "-w", "-1", // CPU: 0=cycle exact, -1=max speed
                 "-s", "kickstart_rom_file=${workspaceFolder}/build/kickdev.rom"
             ],
-            "preLaunchTask": "Kickdev build boot ROM"
+            "preLaunchTask": "Kickdev build kickdev.rom (8kB)"
         },
         {
             "type": "amiga-assembly",
@@ -43,9 +43,9 @@
                 "-s", "gfx_height=1200",
                 "-w", "-1", // CPU: 0=cycle exact, -1=max speed
                 "-s", "kickstart_rom_file=${workspaceFolder}/rom/Amiga 1000 ROM Bootstrap (1985)(Commodore)(A1000)[u].rom",
-                "-0", "${workspaceFolder}/build/kickstart.adf",
+                "-0", "${workspaceFolder}/build/kickdev.adf",
             ],
-            "preLaunchTask": "Kickdev build kickstart ADF"
+            "preLaunchTask": "Kickdev build kickdev.adf (256kB)"
         },
         {
             "type": "amiga-assembly",

@@ -2,18 +2,83 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "Kickdev build kickstart ADF",
+			"label": "Kickdev build kickdev.adf (256kB)",
+			"detail": "Create 880kB Kickstart ADF image: 'KICK', $00 x 508, ROM bytes, $00 padded",
 			"type": "shell",
-			"command": "cat disk/kick512.bin build/kickdev.rom > build/kickstart.adf",
 			"dependsOn": [
-				"Kickdev build boot ROM",
+				"Kickdev build kickdev.adf (unpadded)",
 			],
+			"windows": {
+				"command": "powershell",
+				"args": [
+					"-NoProfile",
+					"-Command",
+					"$f = [System.IO.File]::Open('${workspaceFolder}/build/kickdev.adf', 'OpenOrCreate'); $f.SetLength(901120); $f.Close()"
+				]
+			},
+			"osx": {
+				"command": "truncate",
+				"args": [
+					"-s",
+					"901120",
+					"${workspaceFolder}/build/kickdev.adf"
+				]
+			},
+			"linux": {
+				"command": "truncate",
+				"args": [
+					"-s",
+					"901120",
+					"${workspaceFolder}/build/kickdev.adf"
+				]
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Kickdev build kickdev.adf (unpadded)",
+			"type": "shell",
+			"dependsOn": [
+				"Kickdev build",
+			],
+			"command": "cat disk/kick512.bin build/kickdev.rom > build/kickdev.adf",
 			"problemMatcher": [
 				"$vasm"
 			]
 		},
 		{
-			"label": "Kickdev build boot ROM",
+			"label": "Kickdev build kickdev.rom (8kB)",
+			"type": "shell",
+			"dependsOn": [
+				"Kickdev build",
+			],
+			"windows": {
+				"command": "powershell",
+				"args": [
+					"-NoProfile",
+					"-Command",
+					"$f = [System.IO.File]::Open('${workspaceFolder}/build/kickdev.rom', 'OpenOrCreate'); $f.SetLength(8192); $f.Close()"
+				]
+			},
+			"osx": {
+				"command": "truncate",
+				"args": [
+					"-s",
+					"8192",
+					"${workspaceFolder}/build/kickdev.rom"
+				]
+			},
+			"linux": {
+				"command": "truncate",
+				"args": [
+					"-s",
+					"8192",
+					"${workspaceFolder}/build/kickdev.rom"
+				]
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Kickdev build",
 			"type": "shell",
 			"command": "${env:USERPROFILE}/.vscode/extensions/prb28.amiga-assembly-1.9.0/resources/bin/win32/vasmm68k_mot.exe",
 			"args": [

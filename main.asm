@@ -1,15 +1,17 @@
-; Kickstart 1.0 - 1.3: 256kB $00fc0000 – $00ffffff
-; Kickstart 2.0 - 3.1: 512kB $00f80000 – $00ffffff
-  org       $fc0000
+; Amiga 1000
+;   Boot ROM: 8kB $00f80000 - $00f81fff
+;   Kickstart 1.0 - 1.3: 256kB $00fc0000 - $00ffffff
+;   Kickstart 2.0 - 3.1: 512kB $00f80000 - $00ffffff
+  org       $f80000
 
-CUSTOM EQU $DFF000
+; Boot ROM is mirrored to $00000000 where 68000 reads:
+;   $00000000 Supervisor Stack Pointer (SSP), here $11114e49
+;   $00000004 Initial Program Counter (PC), here $00f80008
+  dc.w      $1111 ; $1111.w
+  dc.w      $4ef9 ; jmp
+  dc.l      begin ; $00f80008.l
 
-START
-  jmp       begin
-  ;  nop
-  ;  nop
-  ;  nop
-  ;  nop
+CUSTOM EQU $dff000
 
 begin:
   move.l    #CUSTOM,a6

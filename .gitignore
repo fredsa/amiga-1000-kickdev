@@ -1,5 +1,6 @@
 # Build artifacts
-/build/
+/build/*
+!/build/.gitkeep
 /uae/
 
 # Amiga ROMs

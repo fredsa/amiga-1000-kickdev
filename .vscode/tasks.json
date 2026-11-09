@@ -93,6 +93,7 @@
 			]
 		},
 		{
+			"label": "amigaassembly: build",
 			"type": "amigaassembly",
 			"vasm": {
 				"enabled": true,
@@ -120,10 +121,10 @@
 			"problemMatcher": [
 				"$vasm"
 			],
-			"group": "build",
-			"label": "amigaassembly: build"
+			"group": "build"
 		},
 		{
+			"label": "amigaassembly: build current file",
 			"type": "amigaassembly",
 			"vasm": {
 				"enabled": true,
@@ -148,10 +149,10 @@
 			},
 			"problemMatcher": [
 				"$vasm"
-			],
-			"label": "amigaassembly: build current file"
+			]
 		},
 		{
+			"label": "amigaassembly: compile current file",
 			"type": "amigaassembly",
 			"vasm": {
 				"enabled": true,
@@ -165,10 +166,10 @@
 			},
 			"problemMatcher": [
 				"$vasm"
-			],
-			"label": "amigaassembly: compile current file"
+			]
 		},
 		{
+			"label": "amigaassembly: create ADF",
 			"type": "amigaassembly",
 			"adfgenerator": {
 				"ADFToolsParentDir": "${config:amiga-assembly.binDir}",
@@ -182,8 +183,7 @@
 			},
 			"problemMatcher": [
 				"$vasm"
-			],
-			"label": "amigaassembly: create ADF"
+			]
 		}
 	]
 }

@@ -5,9 +5,9 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Kickdev ROM Launch",
             "type": "amiga-assembly",
             "request": "launch",
-            "name": "Kickdev ROM Launch",
             "noDebug": true,
             "program": "${workspaceFolder}/uae/dh0/myprogram",
             "remoteProgram": "SYS:myprogram",
@@ -26,9 +26,9 @@
             "preLaunchTask": "Kickdev build kickdev.rom (8kB)"
         },
         {
+            "name": "Kickdev Kickstart Launch",
             "type": "amiga-assembly",
             "request": "launch",
-            "name": "Kickdev Kickstart Launch",
             "noDebug": true,
             "program": "${workspaceFolder}/uae/dh0/myprogram",
             "remoteProgram": "SYS:myprogram",
@@ -48,9 +48,9 @@
             "preLaunchTask": "Kickdev build kickdev.adf (256kB)"
         },
         {
-            "type": "amiga-assembly",
-            "request": "launch",
             "name": "FS-UAE Debug",
+            "type": "amiga-assembly",
+            "request": "launch",
             "stopOnEntry": false,
             "program": "${workspaceFolder}/uae/dh0/myprogram",
             "remoteProgram": "SYS:myprogram",
@@ -62,9 +62,9 @@
             "preLaunchTask": "amigaassembly: build"
         },
         {
-            "type": "amiga-assembly",
-            "request": "launch",
             "name": "FS-UAE Launch",
+            "type": "amiga-assembly",
+            "request": "launch",
             "noDebug": true,
             "program": "${workspaceFolder}/uae/dh0/myprogram",
             "remoteProgram": "SYS:myprogram",
@@ -76,9 +76,9 @@
             "preLaunchTask": "amigaassembly: build"
         },
         {
+            "name": "WinUAE Debug",
             "type": "amiga-assembly",
             "request": "launch",
-            "name": "WinUAE Debug",
             "stopOnEntry": false,
             "program": "${workspaceFolder}/uae/dh0/myprogram",
             "remoteProgram": "SYS:myprogram",
@@ -90,9 +90,9 @@
             "preLaunchTask": "amigaassembly: build"
         },
         {
+            "name": "WinUAE Launch",
             "type": "amiga-assembly",
             "request": "launch",
-            "name": "WinUAE Launch",
             "noDebug": true,
             "program": "${workspaceFolder}/uae/dh0/myprogram",
             "remoteProgram": "SYS:myprogram",
@@ -104,9 +104,9 @@
             "preLaunchTask": "amigaassembly: build"
         },
         {
+            "name": "Copperline Debug",
             "type": "amiga-assembly",
             "request": "launch",
-            "name": "Copperline Debug",
             "emulatorType": "copperline",
             "program": "${workspaceFolder}/uae/dh0/myprogram",
             "stopOnEntry": true,

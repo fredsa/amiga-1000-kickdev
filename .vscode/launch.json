@@ -5,6 +5,40 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "puae",
+            "request": "launch",
+            "name": "PUAE: A1200 AGA 2M chip + 2M fast",
+            "program": "${workspaceFolder}/uae/dh0/myprogram",
+            "fastLoad": true,
+            "stopOnEntry": false,
+            // "kickstartRom": "${workspaceFolder}/roms/kick31.rom",
+            "kickstartRom": "${workspaceFolder}/rom/amiga-os-310-a1200.rom",
+            "emulatorOptions": {
+                "cpu_model": 68020,
+                "chipmem_size": 4,
+                "fastmem_size": 2,
+                "chipset": "aga"
+            },
+            "preLaunchTask": "amigaassembly: build"
+        },
+        {
+            "type": "puae",
+            "request": "launch",
+            "name": "PUAE: A500 OCS 512k + 512k Slow",
+            "program": "${workspaceFolder}/uae/dh0/myprogram",
+            "fastLoad": true,
+            "stopOnEntry": false,
+            // "kickstartRom": "${workspaceFolder}/roms/kick13.rom",
+            "kickstartRom": "${workspaceFolder}/rom/amiga-os-130-a570-ext.rom",
+            "emulatorOptions": {
+                "cpu_model": 68000,
+                "chipmem_size": 1,
+                "bogomem_size": 2,
+                "chipset": "ocs"
+            },
+            "preLaunchTask": "amigaassembly: build"
+        },
+        {
             "name": "Kickdev ROM Launch",
             "type": "amiga-assembly",
             "request": "launch",

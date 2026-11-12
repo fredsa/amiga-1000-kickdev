@@ -44,8 +44,25 @@ begin:
   move.b    #3,$BFE201                                   ; Set CIA-A PRA bits 0-1 as outputs
   move.b    #2,$BFE001                                   ; Clear OVL (unmap ROM from $000000, expose Chip RAM)
 
+
   lea       CUSTOM,a6
   move.w    #$7FFF,DMACON(a6)                            ; Disable all DMA initially
+
+
+; Fill all 5 bitplanes ($020000 - $029C3F) with 32-bit LFSR pseudo-random data
+    lea     Bitplane1,a0
+    move.w  #(8000*5)/4-1,d0        ; 10,000 longwords (40,000 bytes)
+    move.l  #$ACE1B5E3,d1           ; Non-zero 32-bit seed (must never be 0)
+    move.l  #$D0000001,d2           ; 32-bit maximal-length LFSR feedback polynomial
+
+.fill_rnd:
+    lsr.l   #1,d1                   ; Shift right, LSB goes into Carry/X flag
+    bcc.s   .no_xor
+    eor.l   d2,d1                   ; Apply feedback taps if shifted-out bit was 1
+.no_xor:
+    move.l  d1,(a0)+                ; Write 32 random bits to Chip RAM
+    dbf     d0,.fill_rnd
+
 
     ; 1. Copy Copper list from ROM ($F8xxxx) to Chip RAM ($010000)
   lea       CopperList_ROM(pc),a0
@@ -100,6 +117,42 @@ CopBPL1H:
   dc.w      BPL1PTH+8,0,  BPL1PTH+10,0
   dc.w      BPL1PTH+12,0, BPL1PTH+14,0
   dc.w      BPL1PTH+16,0, BPL1PTH+18,0
+
+COLOR00    equ $180
+
+; --- Inside CopperList_ROM (before $FFFF,$FFFE) ---
+  dc.w      COLOR00+$00,$0000                            ; 00: Black (background)
+  dc.w      COLOR00+$02,$0FFF                            ; 01: White
+  dc.w      COLOR00+$04,$0F00                            ; 02: Red
+  dc.w      COLOR00+$06,$00F0                            ; 03: Green
+  dc.w      COLOR00+$08,$000F                            ; 04: Blue
+  dc.w      COLOR00+$0A,$0FF0                            ; 05: Yellow
+  dc.w      COLOR00+$0C,$00FF                            ; 06: Cyan
+  dc.w      COLOR00+$0E,$0F0F                            ; 07: Magenta
+  dc.w      COLOR00+$10,$0888                            ; 08: Mid Gray
+  dc.w      COLOR00+$12,$0CCC                            ; 09: Light Gray
+  dc.w      COLOR00+$14,$0444                            ; 10: Dark Gray
+  dc.w      COLOR00+$16,$0F80                            ; 11: Orange
+  dc.w      COLOR00+$18,$0840                            ; 12: Brown
+  dc.w      COLOR00+$1A,$0F88                            ; 13: Pink
+  dc.w      COLOR00+$1C,$08F8                            ; 14: Light Green
+  dc.w      COLOR00+$1E,$088F                            ; 15: Light Blue
+  dc.w      COLOR00+$20,$0200                            ; 16: Dark Red
+  dc.w      COLOR00+$22,$0500                            ; 17: Medium-Dark Red
+  dc.w      COLOR00+$24,$0900                            ; 18: Medium Red
+  dc.w      COLOR00+$26,$0D00                            ; 19: Bright Red
+  dc.w      COLOR00+$28,$0020                            ; 20: Dark Green
+  dc.w      COLOR00+$2A,$0050                            ; 21: Medium-Dark Green
+  dc.w      COLOR00+$2C,$0090                            ; 22: Medium Green
+  dc.w      COLOR00+$2E,$00D0                            ; 23: Bright Green
+  dc.w      COLOR00+$30,$0002                            ; 24: Dark Blue
+  dc.w      COLOR00+$32,$0005                            ; 25: Medium-Dark Blue
+  dc.w      COLOR00+$34,$0009                            ; 26: Medium Blue
+  dc.w      COLOR00+$36,$000D                            ; 27: Bright Blue
+  dc.w      COLOR00+$38,$0222                            ; 28: Ramp Gray 1
+  dc.w      COLOR00+$3A,$0666                            ; 29: Ramp Gray 2
+  dc.w      COLOR00+$3C,$0AAA                            ; 30: Ramp Gray 3
+  dc.w      COLOR00+$3E,$0EEE                            ; 31: Near White
 
   dc.w      $FFFF,$FFFE
 CopperList_End:

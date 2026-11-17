@@ -17,6 +17,17 @@ CopBPL1H:
   dc.w      BPL1PTH+12,0, BPL1PTH+14,0
   dc.w      BPL1PTH+16,0, BPL1PTH+18,0
 
+CopSPR0H:
+  dc.w      SPR0PTH,0,    SPR0PTH+2,0
+CopSPR1H:
+  dc.w      SPR0PTH+4,0,  SPR0PTH+6,0
+  dc.w      SPR0PTH+8,0,  SPR0PTH+10,0
+  dc.w      SPR0PTH+12,0, SPR0PTH+14,0
+  dc.w      SPR0PTH+16,0, SPR0PTH+18,0
+  dc.w      SPR0PTH+20,0, SPR0PTH+22,0
+  dc.w      SPR0PTH+24,0, SPR0PTH+26,0
+  dc.w      SPR0PTH+28,0, SPR0PTH+30,0
+
 COLOR00    equ $180
 
 ; --- Inside CopperList_ROM (before $FFFF,$FFFE) ---
@@ -52,6 +63,9 @@ COLOR00    equ $180
   dc.w      COLOR00+$3A,$0666                            ; 29: Ramp Gray 2
   dc.w      COLOR00+$3C,$0AAA                            ; 30: Ramp Gray 3
   dc.w      COLOR00+$3E,$0EEE                            ; 31: Near White
+  dc.w      COLOR00+$22,$0EEE                            ; 17: Sprite 0 color 1 (Light Gray)
+  dc.w      COLOR00+$24,$0F40                            ; 18: Sprite 0 color 2 (Orange-Red)
+  dc.w      COLOR00+$26,$04AF                            ; 19: Sprite 0 color 3 (Cyan)
 
   dc.w      $FFFF,$FFFE
 CopperList_End:

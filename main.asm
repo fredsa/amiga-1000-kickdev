@@ -43,25 +43,42 @@ Bitplane1  equ $020000                                   ; Writable Chip RAM for
 begin:
   move.b    #3,$BFE201                                   ; Set CIA-A PRA bits 0-1 as outputs
   move.b    #2,$BFE001                                   ; Clear OVL (unmap ROM from $000000, expose Chip RAM)
+  lea       $07FF00,sp                                   ; Initialize stack pointer in Chip RAM
 
 
   lea       CUSTOM,a6
   move.w    #$7FFF,DMACON(a6)                            ; Disable all DMA initially
 
 
-; Fill all 5 bitplanes ($020000 - $029C3F) with 32-bit LFSR pseudo-random data
+; Fill 5 bitplanes ($020000 - $03387F, 16000 bytes each: 8000B pattern + 8000B wrap copy)
     lea     Bitplane1,a0
-    move.w  #(8000*5)/4-1,d0        ; 10,000 longwords (40,000 bytes)
     move.l  #$ACE1B5E3,d1           ; Non-zero 32-bit seed (must never be 0)
     move.l  #$D0000001,d2           ; 32-bit maximal-length LFSR feedback polynomial
+    moveq   #5-1,d4                 ; 5 bitplanes
 
+.fill_plane:
+    move.l  a0,a1                   ; Save start of this plane's 8000-byte pattern
+    move.w  #8000/4-1,d0            ; 2,000 longwords (8,000 bytes) per plane
 .fill_rnd:
     lsr.l   #1,d1                   ; Shift right, LSB goes into Carry/X flag
     bcc.s   .no_xor
     eor.l   d2,d1                   ; Apply feedback taps if shifted-out bit was 1
 .no_xor:
-    move.l  d1,(a0)+                ; Write 32 random bits to Chip RAM
+    moveq   #0,d3                   ; Default: empty (black)
+    cmp.l   #$04000000,d1           ; ~1.5% chance of a star per 32-bit longword
+    bhs.s   .no_star
+    move.w  d1,d5
+    and.w   #31,d5                  ; Pick 1 random bit (0..31) in the longword
+    bset    d5,d3                   ; Single-pixel star
+.no_star:
+    move.l  d3,(a0)+                ; Write 32 bits to Chip RAM
     dbf     d0,.fill_rnd
+
+    move.w  #8000/4-1,d0            ; Duplicate 8000-byte pattern for seamless vertical wrap
+.copy_wrap:
+    move.l  (a1)+,(a0)+
+    dbf     d0,.copy_wrap
+    dbf     d4,.fill_plane
 
 
     ; 1. Copy Copper list from ROM ($F8xxxx) to Chip RAM ($010000)
@@ -81,7 +98,7 @@ begin:
   move.w    d1,4(a1)                                     ; Low word -> BPLxPTL
   swap      d1
   move.w    d1,(a1)                                      ; High word -> BPLxPTH
-  add.l     #8000,a0
+  add.l     #16000,a0
   addq.l    #8,a1
   dbf       d0,.set_planes
 
@@ -93,66 +110,74 @@ begin:
   move.w    #0,COPJMP1(a6)
   move.w    #$8380,DMACON(a6)                            ; Master + Bitplane + Copper DMA
 
+  move.l    d1,d7                                        ; Preserve non-zero LFSR state in d7
+  move.l    #$D0000001,d6                                ; LFSR polynomial in d6
+  moveq     #0,d4                                        ; Frame counter for bitplane scrolling
+
 loop:
-  addq.w    #1,d3
-  and.w     #$0FFF,d3
-  move.w    d3,$180(a6)                                  ; Cycle COLOR00
+.wait_vbl:
+  move.l    $004(a6),d0                                  ; Read VPOSR/VHPOSR
+  and.l     #$0001FF00,d0
+  cmp.l     #$00010000,d0                                ; Wait for raster line 256
+  bne.s     .wait_vbl
+
+  addq.w    #1,d4                                        ; Advance frame counter
+  lea       Bitplane1,a0
+  lea       ChipCopper+(CopBPL1H-CopperList_ROM)+2,a1
+  moveq     #1,d2                                        ; Speed multiplier (1..5 lines/frame)
+  moveq     #5-1,d0
+.scroll_planes:
+  move.w    d4,d1
+  mulu      d2,d1                                        ; frame * speed
+  divu      #200,d1                                      ; mod 200 lines
+  swap      d1
+  neg.w     d1
+  add.w     #199,d1                                      ; Reverse direction: 199 -> 0
+
+  ; Generate new random stars on the newly-entering scanlines (d2 lines at d1)
+  movem.l   d0-d2,-(sp)                                  ; Save plane counter, line offset, speed
+  move.w    d1,d5                                        ; d5 = current line index
+  subq.w    #1,d2                                        ; Loop d2 lines (0..speed-1)
+.new_lines:
+  cmp.w     #200,d5
+  blo.s     .line_ok
+  sub.w     #200,d5
+.line_ok:
+  move.w    d5,-(sp)
+  mulu      #40,d5
+  lea       (a0,d5.l),a2                                 ; a2 = plane + line*40
+  lea       8000(a2),a3                                  ; a3 = wrap copy + line*40
+  moveq     #10-1,d5                                     ; 10 longwords (40 bytes) per scanline
+.new_stars:
+  lsr.l     #1,d7
+  bcc.s     .no_xor2
+  eor.l     d6,d7
+.no_xor2:
+  moveq     #0,d0                                        ; Default: empty (black)
+  cmp.l     #$04000000,d7
+  bhs.s     .write_star
+  move.w    d7,d1
+  and.w     #31,d1
+  bset      d1,d0                                        ; Single-pixel star
+.write_star:
+  move.l    d0,(a2)+
+  move.l    d0,(a3)+
+  dbf       d5,.new_stars
+  move.w    (sp)+,d5
+  addq.w    #1,d5
+  dbf       d2,.new_lines
+  movem.l   (sp)+,d0-d2                                  ; Restore plane counter, line offset, speed
+
+  mulu      #40,d1                                       ; Convert line offset to bytes (40 bytes/line)
+  add.l     a0,d1                                        ; Bitplane base + scroll offset
+  move.w    d1,4(a1)                                     ; Low word -> BPLxPTL
+  swap      d1
+  move.w    d1,(a1)                                      ; High word -> BPLxPTH
+  add.l     #16000,a0
+  addq.l    #8,a1
+  addq.w    #1,d2                                        ; Next plane scrolls faster
+  dbf       d0,.scroll_planes
+
   jmp       loop
 
-; --- Copper List Template in ROM ---
-CopperList_ROM:
-  dc.w      DIWSTRT,$2C81
-  dc.w      DIWSTOP,$F4C1
-  dc.w      DDFSTRT,$0038
-  dc.w      DDFSTOP,$00D0
-  dc.w      BPLCON0,$5200                                ; 5 bitplanes + Color burst
-  dc.w      BPLCON1,$0000
-  dc.w      BPLCON2,$0024
-  dc.w      BPL1MOD,$0000
-  dc.w      BPL2MOD,$0000
-
-CopBPL1H:
-  dc.w      BPL1PTH,0,    BPL1PTH+2,0
-  dc.w      BPL1PTH+4,0,  BPL1PTH+6,0
-  dc.w      BPL1PTH+8,0,  BPL1PTH+10,0
-  dc.w      BPL1PTH+12,0, BPL1PTH+14,0
-  dc.w      BPL1PTH+16,0, BPL1PTH+18,0
-
-COLOR00    equ $180
-
-; --- Inside CopperList_ROM (before $FFFF,$FFFE) ---
-  dc.w      COLOR00+$00,$0000                            ; 00: Black (background)
-  dc.w      COLOR00+$02,$0FFF                            ; 01: White
-  dc.w      COLOR00+$04,$0F00                            ; 02: Red
-  dc.w      COLOR00+$06,$00F0                            ; 03: Green
-  dc.w      COLOR00+$08,$000F                            ; 04: Blue
-  dc.w      COLOR00+$0A,$0FF0                            ; 05: Yellow
-  dc.w      COLOR00+$0C,$00FF                            ; 06: Cyan
-  dc.w      COLOR00+$0E,$0F0F                            ; 07: Magenta
-  dc.w      COLOR00+$10,$0888                            ; 08: Mid Gray
-  dc.w      COLOR00+$12,$0CCC                            ; 09: Light Gray
-  dc.w      COLOR00+$14,$0444                            ; 10: Dark Gray
-  dc.w      COLOR00+$16,$0F80                            ; 11: Orange
-  dc.w      COLOR00+$18,$0840                            ; 12: Brown
-  dc.w      COLOR00+$1A,$0F88                            ; 13: Pink
-  dc.w      COLOR00+$1C,$08F8                            ; 14: Light Green
-  dc.w      COLOR00+$1E,$088F                            ; 15: Light Blue
-  dc.w      COLOR00+$20,$0200                            ; 16: Dark Red
-  dc.w      COLOR00+$22,$0500                            ; 17: Medium-Dark Red
-  dc.w      COLOR00+$24,$0900                            ; 18: Medium Red
-  dc.w      COLOR00+$26,$0D00                            ; 19: Bright Red
-  dc.w      COLOR00+$28,$0020                            ; 20: Dark Green
-  dc.w      COLOR00+$2A,$0050                            ; 21: Medium-Dark Green
-  dc.w      COLOR00+$2C,$0090                            ; 22: Medium Green
-  dc.w      COLOR00+$2E,$00D0                            ; 23: Bright Green
-  dc.w      COLOR00+$30,$0002                            ; 24: Dark Blue
-  dc.w      COLOR00+$32,$0005                            ; 25: Medium-Dark Blue
-  dc.w      COLOR00+$34,$0009                            ; 26: Medium Blue
-  dc.w      COLOR00+$36,$000D                            ; 27: Bright Blue
-  dc.w      COLOR00+$38,$0222                            ; 28: Ramp Gray 1
-  dc.w      COLOR00+$3A,$0666                            ; 29: Ramp Gray 2
-  dc.w      COLOR00+$3C,$0AAA                            ; 30: Ramp Gray 3
-  dc.w      COLOR00+$3E,$0EEE                            ; 31: Near White
-
-  dc.w      $FFFF,$FFFE
-CopperList_End:
+  include   "copper.i"
